@@ -8,6 +8,7 @@ import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
 import * as Permissions from 'expo-permissions';
 import { Overlay } from 'react-native-elements';
+import { FAB } from 'react-native-paper';
 
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
   const [fullName , setFullName ] = useState("");
   const [loading , setLoading ] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [downloadble ,setDownloadble ] = useState(false);
 
   const toggleOverlay = () => {
     setVisible(!visible);
@@ -56,7 +58,7 @@ const saveFile = async (fileUri) => {
   const getData = async(value) =>
 {
   setLoading(true);
-  
+  value = value.trim();
   if(value)
   {
     
@@ -79,18 +81,30 @@ const saveFile = async (fileUri) => {
       setBio(json.graphql.user.biography);
       setFullName(json.graphql.user.full_name);
       setDpURL(json.graphql.user.profile_pic_url_hd);
+      setDownloadble(true);
       // console.log(json.graphql.user.biography);
       // console.log(json.graphql.user.full_name);
       // console.log(json.graphql.user.profile_pic_url_hd);
     } )
-    .catch(error => console.log(error));
+    .catch((error) => 
+    {
+      alert("Error : Invalid URL ");
+
+      setBio("");
+      setDpURL("");
+      setFullName("");
+      setDownloadble(false);    
+    });
   }
   else
   {
-    alert("Error : No URL entered or Invalid URL ");
+    alert("Error : No URL entered ");
     setBio("");
     setDpURL("");
     setFullName("");
+
+    setDownloadble(false);
+
   }
   setLoading(false);
 
@@ -101,6 +115,7 @@ const saveFile = async (fileUri) => {
       <SafeAreaView style={styles.view} >
         <ScrollView>
           <Text style={styles.text} >Insta Downloader</Text>
+          
         <View style={styles.InputContainer}>
         <TextInput style={styles.textInput} value={link} onChangeText={text => setLink(text)}  />
         <TouchableOpacity style={{
@@ -120,8 +135,9 @@ const saveFile = async (fileUri) => {
         
         </TouchableOpacity>
         </View>
-        
+
         <View style={styles.downContainer}>
+
         <Overlay isVisible={visible} >
         <ActivityIndicator
               color="black"
@@ -129,24 +145,33 @@ const saveFile = async (fileUri) => {
           /> 
           <Text style={{fontSize:20 , fontWeight : "bold"}} >Downloading..</Text>
       </Overlay>
+
+      
         <View style={{ padding: 15 }} >
+
+          
             <Text style={{fontSize: 25 , fontWeight : "bold" }}>{fullName}</Text>
           </View>
           <View>
             <Text style={{fontSize: 18}} >{bio}</Text>
           </View>
         </View>
-          
+
         <View style={styles.ImageContainer} > 
-        <TouchableOpacity onPress={()=>downloadFile()} >
+          
         <Image
         source={ dpURL? { uri: dpURL }: { uri:"https://www.bestofelectricals.com/images/default-image.png" }}
         style={{ width: 350, height: 350 }}
         resizeMode = "contain"
         PlaceholderContent={<ActivityIndicator />}
           />
-        </TouchableOpacity>
-         
+                 <FAB
+            style={styles.fab}
+            large
+            icon="download"
+            visible = {downloadble}
+            onPress={()=>downloadFile()}
+          />
           <Text style={styles.text} >Insta Downloader</Text>
 
         </View>
@@ -202,12 +227,19 @@ const styles = StyleSheet.create({
     fontWeight : "bold",
     color : "red",
     alignSelf : "center",
-    marginBottom : statusbarHeight * 0.5
+    marginBottom : statusbarHeight * 0.5,
   },
   downContainer : 
   {
     top : height * 0.05,
     justifyContent : "center",
     alignItems : "center",
-  }
+  },
+  fab: {
+    position: 'absolute',
+    margin: 10,
+    right: 5,
+    bottom: statusbarHeight * 3,
+    backgroundColor : "skyblue"
+  },
 });
